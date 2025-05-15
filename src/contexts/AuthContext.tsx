@@ -42,6 +42,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (response.data.user) {
           setUser(response.data.user);
+        } else {
+          console.error('No user data received:', response.data);
         }
       } catch (err) {
         localStorage.removeItem('token');
