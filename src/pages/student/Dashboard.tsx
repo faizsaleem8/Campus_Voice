@@ -10,7 +10,7 @@ import SortOptions from '../../components/SortOptions';
 import toast from 'react-hot-toast';
 
 const StudentDashboard: React.FC = () => {
-  const [complaints, setComplaints] = useState([]);
+  const [complaints, setComplaints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,9 +41,13 @@ const StudentDashboard: React.FC = () => {
       
       setComplaints(response.data);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching complaints:', err);
       setError('Failed to load complaints. Please try again later.');
+      if (err.response) {
+        console.error('Response data:', err.response.data);
+        console.error('Response status:', err.response.status);
+      }
     } finally {
       setLoading(false);
     }
