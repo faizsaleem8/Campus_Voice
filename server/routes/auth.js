@@ -43,23 +43,17 @@ router.post(
         userId: user.id,
       };
 
-      jwt.sign(
-        payload,
-        process.env.JWT_SECRET || 'a-string-secret-at-least-256-bits-long',
-        { expiresIn: '7d' },
-        (err, token) => {
-          if (err) throw err;
-          res.json({
-            token,
-            user: {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-            },
-          });
-        }
-      );
+      const token = jwt.sign(payload, process.env.JWT_SECRET || 'supersecretkey123', { expiresIn: '24h' });
+
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server error');
@@ -99,23 +93,17 @@ router.post(
         userId: user.id,
       };
 
-      jwt.sign(
-        payload,
-        process.env.JWT_SECRET || 'a-string-secret-at-least-256-bits-long',
-        { expiresIn: '7d' },
-        (err, token) => {
-          if (err) throw err;
-          res.json({
-            token,
-            user: {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-            },
-          });
-        }
-      );
+      const token = jwt.sign(payload, process.env.JWT_SECRET || 'supersecretkey123', { expiresIn: '24h' });
+
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server error');
@@ -135,7 +123,7 @@ router.get('/user', auth, async (req, res) => {
     
     res.json({ user });
   } catch (err) {
-    console.error(err.message);
+    console.error('Error retrieving user:', err);
     res.status(500).send('Server error');
   }
 });

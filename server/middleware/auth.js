@@ -9,10 +9,11 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey123');
     const user = await User.findById(decoded.userId);
     
     if (!user) {
+      console.error('User not found for token:', decoded.userId);
       return res.status(401).json({ message: 'Invalid authentication token' });
     }
     
@@ -20,6 +21,7 @@ const auth = async (req, res, next) => {
     req.token = token;
     next();
   } catch (error) {
+    console.error('Authentication error:', error);
     res.status(401).json({ message: 'Authentication failed' });
   }
 };

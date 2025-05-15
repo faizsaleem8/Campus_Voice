@@ -58,7 +58,7 @@ router.get('/', auth, async (req, res) => {
     
     res.json(complaintsWithCommentCount);
   } catch (err) {
-    console.error(err.message);
+    console.error('Error fetching complaints:', err);
     res.status(500).send('Server error');
   }
 });
