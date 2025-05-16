@@ -60,8 +60,8 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
       <div className="p-5">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors">
-              <Link to={`/complaints/${_id}`}>{title}</Link>
+            <h3>
+              {title}
             </h3>
             <div className="flex items-center mt-1 space-x-3">
               <span className={`badge ${getStatusBadgeClass(status)} flex items-center`}>
@@ -86,10 +86,15 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
               <Calendar className="w-4 h-4 mr-1" />
               {formatDistanceToNow(createdAt)}
             </span>
-            <span className="flex items-center">
-              <MessageSquare className="w-4 h-4 mr-1" />
-              {comments} {comments === 1 ? 'comment' : 'comments'}
+            <span className="flex items-center text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors">
+              <Link to={`/complaints/${_id}`} className="flex items-center">
+                <MessageSquare className="w-4 h-4 mr-1" />
+                <span>
+                  {comments} {comments === 1 ? 'comment' : 'comments'}
+                </span>
+              </Link>
             </span>
+
           </div>
           
           {showActions && (
