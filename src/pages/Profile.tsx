@@ -102,13 +102,14 @@ const Profile: React.FC = () => {
               </Link>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {complaints.map((complaint: any) => (
-                <ComplaintCard
-                  key={complaint._id}
-                  complaint={complaint}
-                  showActions={false}
-                />
+                <div key={complaint._id} className="card h-full">
+                  <ComplaintCard
+                    complaint={complaint}
+                    showActions={false}
+                  />
+                </div>
               ))}
             </div>
           )}

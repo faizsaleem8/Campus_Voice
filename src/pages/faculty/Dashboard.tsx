@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, AlertCircle, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../../config';
 import ComplaintCard from '../../components/ComplaintCard';
@@ -9,6 +10,7 @@ import SortOptions from '../../components/SortOptions';
 import toast from 'react-hot-toast';
 
 const FacultyDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +83,10 @@ const FacultyDashboard: React.FC = () => {
     setShowFilters(!showFilters);
   };
 
+  const handleComplaintClick = (complaintId: string) => {
+    navigate(`/complaints/${complaintId}`);
+  };
+
   const filteredComplaints = complaints.filter((complaint: any) => {
     return complaint.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
            complaint.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -114,9 +120,9 @@ const FacultyDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className={`${showFilters ? 'block' : 'hidden'} md:block md:col-span-1`}>
-          <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className={`${showFilters ? 'block' : 'hidden'} md:block md:w-64 flex-shrink-0`}>
+          <div className="bg-white p-4 rounded-lg shadow-sm">
             <h2 className="text-lg font-semibold mb-4">Filters</h2>
             <CategoryFilter
               selectedCategory={selectedCategory}
@@ -129,7 +135,7 @@ const FacultyDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="md:col-span-3">
+        <div className="flex-1">
           <div className="flex justify-between items-center mb-4">
             <div className="text-sm text-gray-600">
               {filteredComplaints.length} {filteredComplaints.length === 1 ? 'complaint' : 'complaints'} found
@@ -154,35 +160,95 @@ const FacultyDashboard: React.FC = () => {
               <p className="text-gray-600">No complaints found matching your criteria.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredComplaints.map((complaint: any) => (
-                <div key={complaint._id} className="card">
-                  <ComplaintCard
-                    complaint={complaint}
-                    showActions={false}
-                  />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6">
+              {filteredComplaints.map((complaint: any) => {
+                const getStatusColor = (status: string) => {
+                  switch (status) {
+                    case 'in-progress':
+                      return 'border-blue-500 bg-blue-50';
+                    case 'pending':
+                      return 'border-yellow-500 bg-yellow-50';
+                    case 'resolved':
+                      return 'border-green-500 bg-green-50';
+                    case 'rejected':
+                      return 'border-red-500 bg-red-50';
+                    default:
+                      return 'border-gray-200 bg-white';
+                  }
+                };
+
+                const formatTimeAgo = (date: string) => {
+                  const now = new Date();
+                  const complaintDate = new Date(date);
+                  const diffInSeconds = Math.floor((now.getTime() - complaintDate.getTime()) / 1000);
                   
-                  {complaint.status !== 'resolved' && complaint.status !== 'rejected' && (
-                    <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleStatusChange(complaint._id, 'in-progress')}
-                        className={`btn ${
-                          complaint.status === 'in-progress' ? 'btn-primary' : 'btn-ghost'
-                        } py-1 px-3 text-sm`}
-                      >
-                        Mark as In Progress
-                      </button>
-                      <button
-                        onClick={() => handleStatusChange(complaint._id, 'resolved')}
-                        className="btn btn-success py-1 px-3 text-sm flex items-center"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Mark as Resolved
-                      </button>
+                  if (diffInSeconds < 60) {
+                    return `${diffInSeconds} sec ago`;
+                  }
+                  
+                  const diffInMinutes = Math.floor(diffInSeconds / 60);
+                  if (diffInMinutes < 60) {
+                    return `${diffInMinutes} mins ago`;
+                  }
+                  
+                  const diffInHours = Math.floor(diffInMinutes / 60);
+                  if (diffInHours < 24) {
+                    return `${diffInHours} hrs ago`;
+                  }
+                  
+                  const diffInDays = Math.floor(diffInHours / 24);
+                  if (diffInDays < 7) {
+                    return `${diffInDays} days ago`;
+                  }
+                  
+                  return complaintDate.toLocaleDateString();
+                };
+
+                return (
+                  <div 
+                    key={complaint._id} 
+                    className={`rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border-2 ${getStatusColor(complaint.status)} flex flex-col h-full`}
+                    onClick={() => handleComplaintClick(complaint._id)}
+                  >
+                    <div className="p-6 flex-grow">
+                      <ComplaintCard
+                        complaint={complaint}
+                        showActions={false}
+                        formatTimeAgo={formatTimeAgo}
+                      />
                     </div>
-                  )}
-                </div>
-              ))}
+                    
+                    {complaint.status !== 'resolved' && complaint.status !== 'rejected' && (
+                      <div 
+                        className="px-6 py-4 bg-white/50 border-t border-gray-100 flex justify-end space-x-3 mt-auto"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(complaint._id, 'in-progress');
+                          }}
+                          className={`btn ${
+                            complaint.status === 'in-progress' ? 'btn-primary' : 'btn-ghost'
+                          } py-2 px-4 text-sm font-medium`}
+                        >
+                          Mark as In Progress
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(complaint._id, 'resolved');
+                          }}
+                          className="btn btn-success py-2 px-4 text-sm font-medium flex items-center"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Mark as Resolved
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
