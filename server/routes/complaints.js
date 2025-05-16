@@ -170,7 +170,7 @@ router.get('/user', auth, async (req, res) => {
 // Get a single complaint by ID
 router.get('/:id', auth, async (req, res) => {
   try {
-    const complaint = await Complaint.findById(req.query.id).select('-voters');
+    const complaint = await Complaint.findById(req.params.id).select('-voters');
     
     if (!complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
