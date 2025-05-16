@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag, ThumbsUp, MessageSquare, CheckCircle, Clock, Send } from 'lucide-react';
 import axios from 'axios';
-import { API_URL } from '../config';
+import { API_URL, detectServerPort } from '../config';
 import { COMPLAINT_CATEGORIES } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDistanceToNow } from '../utils/date';
@@ -33,7 +33,11 @@ const ComplaintDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchComplaintDetails();
+    const initialize = async () => {
+      await detectServerPort();
+      fetchComplaintDetails();
+    };
+    initialize();
   }, [id]);
 
   const fetchComplaintDetails = async () => {

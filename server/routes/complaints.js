@@ -170,9 +170,11 @@ router.get('/user', auth, async (req, res) => {
 // Get a single complaint by ID
 router.get('/:id', auth, async (req, res) => {
   try {
-    const complaint = await Complaint.findById(req.query.id).select('-voters');
+    console.log('Fetching complaint with ID:', req.params.id);
+    const complaint = await Complaint.findById(req.params.id).select('-voters');
     
     if (!complaint) {
+      console.log('Complaint not found with ID:', req.params.id);
       return res.status(404).json({ message: 'Complaint not found' });
     }
     
@@ -183,7 +185,7 @@ router.get('/:id', auth, async (req, res) => {
       comments: commentCount,
     });
   } catch (err) {
-    console.error(err.message);
+    console.error('Error fetching complaint:', err);
     
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Complaint not found' });
