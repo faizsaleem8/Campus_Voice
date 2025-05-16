@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { detectServerPort } from './config';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -13,6 +14,10 @@ import NotFound from './pages/NotFound';
 
 function App() {
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    detectServerPort();
+  }, []);
 
   if (loading) {
     return (

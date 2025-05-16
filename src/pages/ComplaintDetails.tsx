@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Tag, ThumbsUp, MessageSquare, CheckCircle, Clock, Send } from 'lucide-react';
 import axios from 'axios';
-import { API_URL } from '../config';
+import { API_URL, detectServerPort } from '../config';
 import { COMPLAINT_CATEGORIES } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDistanceToNow } from '../utils/date';
@@ -33,7 +33,11 @@ const ComplaintDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchComplaintDetails();
+    const initialize = async () => {
+      await detectServerPort();
+      fetchComplaintDetails();
+    };
+    initialize();
   }, [id]);
 
   const fetchComplaintDetails = async () => {
@@ -252,13 +256,23 @@ const ComplaintDetails: React.FC = () => {
               </span>
             </div>
             
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
               <button
                 onClick={handleVote}
                 className="flex items-center text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
               >
                 <ThumbsUp className="w-4 h-4 mr-1" />
                 <span>{complaint.votes}</span>
+              </button>
+              <button
+                onClick={() => {
+                  const commentsSection = document.getElementById('comments-section');
+                  commentsSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="flex items-center px-3 py-1.5 rounded-full bg-gray-100 hover:bg-primary-100 text-sm font-medium text-gray-700 hover:text-primary-600 transition-all duration-200 cursor-pointer"
+              >
+                <MessageSquare className="w-4 h-4 mr-1.5" />
+                <span>{comments.length} Comments</span>
               </button>
             </div>
           </div>
@@ -296,7 +310,7 @@ const ComplaintDetails: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+      <div id="comments-section" className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold flex items-center">
             <MessageSquare className="h-5 w-5 mr-2 text-gray-500" />
