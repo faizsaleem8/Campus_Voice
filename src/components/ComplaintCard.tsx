@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Tag, MessageSquare, ThumbsUp, Clock } from 'lucide-react';
 import { formatDistanceToNow } from '../utils/date';
+import { useNotifications } from '../contexts/NotificationsContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ComplaintCardProps {
   complaint: {
@@ -13,18 +15,39 @@ interface ComplaintCardProps {
     votes: number;
     createdAt: string;
     comments: number;
+    studentName: string;
+    author: string;
   };
-  onVote?: () => void;
+  onVote?: (e: React.MouseEvent) => void;
   showActions?: boolean;
+  previousStatus?: string;
+  onStatusChange?: (newStatus: string) => void;
 }
 
 const ComplaintCard: React.FC<ComplaintCardProps> = ({ 
   complaint, 
   onVote,
-  showActions = true
+  showActions = true,
+  previousStatus,
+  onStatusChange
 }) => {
-  const { _id, title, description, category, status, votes, createdAt, comments } = complaint;
-  
+  const { _id, title, description, category, status, votes, createdAt, comments, studentName, author } = complaint;
+  const { addNotification } = useNotifications();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Only add notification if the current user is the author of the complaint
+    if (previousStatus && previousStatus !== status && user && user.id === author) {
+      addNotification({
+        userId: user.id,
+        studentName,
+        complaintTitle: title,
+        newStatus: status,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [status, previousStatus, studentName, title, addNotification, user, author]);
+
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case 'pending':
@@ -57,7 +80,7 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
 
   return (
     <div className="card hover:border-primary-300 transition-all duration-300">
-      <div className="p-5">
+      <div className="p-1">
         <div className="flex justify-between items-start mb-3">
           <div>
             <h3>
@@ -81,7 +104,7 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
         </p>
         
         <div className="flex items-center justify-between text-sm text-gray-500 mt-4">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <span className="flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
               {formatDistanceToNow(createdAt)}
@@ -90,14 +113,13 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
               <Link to={`/complaints/${_id}`} className="flex items-center">
                 <MessageSquare className="w-4 h-4 mr-1" />
                 <span>
-                  {comments} {comments === 1 ? 'comment' : 'comments'}
+                  {comments} comments
                 </span>
               </Link>
             </span>
-
           </div>
           
-          {showActions && (
+          
             <button 
               onClick={onVote}
               className="flex items-center text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
@@ -105,8 +127,24 @@ const ComplaintCard: React.FC<ComplaintCardProps> = ({
               <ThumbsUp className="w-4 h-4 mr-1" />
               <span>{votes}</span>
             </button>
-          )}
+         
         </div>
+
+        {/* Status Change Dropdown for Faculty */}
+        {onStatusChange && (
+          <div className="mt-4">
+            <select
+              value={status}
+              onChange={(e) => onStatusChange(e.target.value)}
+              className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );

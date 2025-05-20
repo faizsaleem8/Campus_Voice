@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import complaintRoutes from './routes/complaints.js';
+import notificationRoutes from './routes/notifications.js';
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +58,7 @@ const connectToMongoDB = async () => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Add route to get server port
 app.get('/api/server-port', (req, res) => {

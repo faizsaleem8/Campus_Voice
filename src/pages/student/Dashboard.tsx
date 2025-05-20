@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 const StudentDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [complaints, setComplaints] = useState<any[]>([]);
+  const [previousStatuses, setPreviousStatuses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,6 +40,13 @@ const StudentDashboard: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      
+      // Initialize previous statuses
+      const initialPreviousStatuses: Record<string, string> = {};
+      response.data.forEach((complaint: any) => {
+        initialPreviousStatuses[complaint._id] = complaint.status;
+      });
+      setPreviousStatuses(initialPreviousStatuses);
       
       setComplaints(response.data);
       setError(null);
@@ -216,6 +224,7 @@ const StudentDashboard: React.FC = () => {
                           e.stopPropagation();
                           handleVote(complaint._id);
                         }}
+                        previousStatus={previousStatuses[complaint._id]}
                         formatTimeAgo={formatTimeAgo}
                       />
                     </div>

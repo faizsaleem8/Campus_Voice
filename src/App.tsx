@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 import { detectServerPort } from './config';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
@@ -31,43 +32,45 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-      <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
-      
-      {/* Protected routes */}
-      <Route element={<Layout />}>
-        <Route path="/" element={
-          user ? (
-            user.role === 'student' ? 
-              <Navigate to="/dashboard" /> : 
-              <Navigate to="/faculty/dashboard" />
-          ) : (
-            <Navigate to="/login" />
-          )
-        } />
+    <NotificationsProvider>
+      <Routes>
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
+        
+        {/* Protected routes */}
+        <Route element={<Layout />}>
+          <Route path="/" element={
+            user ? (
+              user.role === 'student' ? 
+                <Navigate to="/dashboard" /> : 
+                <Navigate to="/faculty/dashboard" />
+            ) : (
+              <Navigate to="/login" />
+            )
+          } />
 
-        {/* Student routes */}
-        <Route path="/dashboard" element={
-          user && user.role === 'student' ? <StudentDashboard /> : <Navigate to="/login" />
-        } />
-        <Route path="/new-complaint" element={
-          user && user.role === 'student' ? <ComplaintForm /> : <Navigate to="/login" />
-        } />
+          {/* Student routes */}
+          <Route path="/dashboard" element={
+            user && user.role === 'student' ? <StudentDashboard /> : <Navigate to="/login" />
+          } />
+          <Route path="/new-complaint" element={
+            user && user.role === 'student' ? <ComplaintForm /> : <Navigate to="/login" />
+          } />
+          
+          {/* Faculty routes */}
+          <Route path="/faculty/dashboard" element={
+            user && user.role === 'faculty' ? <FacultyDashboard /> : <Navigate to="/login" />
+          } />
+          
+          {/* Common routes */}
+          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+          <Route path="/complaints/:id" element={user ? <ComplaintDetails /> : <Navigate to="/login" />} />
+        </Route>
         
-        {/* Faculty routes */}
-        <Route path="/faculty/dashboard" element={
-          user && user.role === 'faculty' ? <FacultyDashboard /> : <Navigate to="/login" />
-        } />
-        
-        {/* Common routes */}
-        <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
-        <Route path="/complaints/:id" element={user ? <ComplaintDetails /> : <Navigate to="/login" />} />
-      </Route>
-      
-      {/* 404 route */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* 404 route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </NotificationsProvider>
   );
 }
 

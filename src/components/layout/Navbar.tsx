@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Menu, X, MessageSquare, LogOut, User, ChevronDown } from 'lucide-react';
+import Notifications from '../Notifications';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -51,6 +52,8 @@ const Navbar: React.FC = () => {
                     Dashboard
                   </Link>
                 )}
+
+                <Notifications />
 
                 <div className="relative">
                   <button

@@ -11,7 +11,8 @@ import toast from 'react-hot-toast';
 
 const FacultyDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [complaints, setComplaints] = useState([]);
+  const [complaints, setComplaints] = useState<any[]>([]);
+  const [previousStatuses, setPreviousStatuses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +42,13 @@ const FacultyDashboard: React.FC = () => {
         },
       });
       
+      // Initialize previous statuses
+      const initialPreviousStatuses: Record<string, string> = {};
+      response.data.forEach((complaint: any) => {
+        initialPreviousStatuses[complaint._id] = complaint.status;
+      });
+      setPreviousStatuses(initialPreviousStatuses);
+      
       setComplaints(response.data);
       setError(null);
     } catch (err) {
@@ -64,6 +72,9 @@ const FacultyDashboard: React.FC = () => {
         }
       );
       
+      // Get the current status before updating
+      const currentStatus = complaints.find(c => c._id === complaintId)?.status;
+      
       // Update the complaint status in the local state
       setComplaints((prevComplaints) =>
         prevComplaints.map((complaint: any) =>
@@ -72,6 +83,12 @@ const FacultyDashboard: React.FC = () => {
             : complaint
         )
       );
+      
+      // Update previous status to the old status
+      setPreviousStatuses(prev => ({
+        ...prev,
+        [complaintId]: currentStatus
+      }));
       
       toast.success(`Complaint marked as ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`);
     } catch (err: any) {
@@ -214,7 +231,7 @@ const FacultyDashboard: React.FC = () => {
                       <ComplaintCard
                         complaint={complaint}
                         showActions={false}
-                        formatTimeAgo={formatTimeAgo}
+                        previousStatus={previousStatuses[complaint._id]}
                       />
                     </div>
                     

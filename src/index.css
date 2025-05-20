@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 93.75%; /* 15px / 16px = 0.9375 */
+  }
+
   body {
     @apply bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 font-sans antialiased min-h-screen;
   }

@@ -10,7 +10,8 @@ import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
-  const [complaints, setComplaints] = useState([]);
+  const [complaints, setComplaints] = useState<any[]>([]);
+  const [previousStatuses, setPreviousStatuses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -33,6 +34,13 @@ const Profile: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      
+      // Initialize previous statuses
+      const initialPreviousStatuses: Record<string, string> = {};
+      response.data.forEach((complaint: any) => {
+        initialPreviousStatuses[complaint._id] = complaint.status;
+      });
+      setPreviousStatuses(initialPreviousStatuses);
       
       setComplaints(response.data);
       setError(null);
@@ -108,6 +116,7 @@ const Profile: React.FC = () => {
                   <ComplaintCard
                     complaint={complaint}
                     showActions={false}
+                    previousStatus={previousStatuses[complaint._id]}
                   />
                 </div>
               ))}

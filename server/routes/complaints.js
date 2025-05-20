@@ -3,6 +3,7 @@ import { check, validationResult } from 'express-validator';
 import Complaint from '../models/Complaint.js';
 import Comment from '../models/Comment.js';
 import { auth, isFaculty } from '../middleware/auth.js';
+import Notification from '../models/Notification.js';
 
 const router = express.Router();
 
@@ -42,16 +43,19 @@ router.get('/', auth, async (req, res) => {
     
     const complaints = await Complaint.find(filter)
       .select('-voters') // Exclude voters array
+      .populate('author', 'name') // Populate author name
       .sort(sortOptions)
       .lean();
     
-    // For each complaint, count its comments
+    // For each complaint, count its comments and add studentName
     const complaintsWithCommentCount = await Promise.all(
       complaints.map(async (complaint) => {
         const commentCount = await Comment.countDocuments({ complaint: complaint._id });
         return {
           ...complaint,
           comments: commentCount,
+          studentName: complaint.author.name,
+          author: complaint.author._id.toString(), // Add author ID
         };
       })
     );
@@ -99,16 +103,19 @@ router.get('/all', auth, isFaculty, async (req, res) => {
     
     const complaints = await Complaint.find(filter)
       .select('-voters') // Exclude voters array
+      .populate('author', 'name') // Populate author name
       .sort(sortOptions)
       .lean();
     
-    // For each complaint, count its comments
+    // For each complaint, count its comments and add studentName
     const complaintsWithCommentCount = await Promise.all(
       complaints.map(async (complaint) => {
         const commentCount = await Comment.countDocuments({ complaint: complaint._id });
         return {
           ...complaint,
           comments: commentCount,
+          studentName: complaint.author.name,
+          author: complaint.author._id.toString(), // Add author ID
         };
       })
     );
@@ -146,16 +153,19 @@ router.get('/user', auth, async (req, res) => {
     
     const complaints = await Complaint.find(filter)
       .select('-voters') // Exclude voters array
+      .populate('author', 'name') // Populate author name
       .sort(sortOptions)
       .lean();
     
-    // For each complaint, count its comments
+    // For each complaint, count its comments and add studentName
     const complaintsWithCommentCount = await Promise.all(
       complaints.map(async (complaint) => {
         const commentCount = await Comment.countDocuments({ complaint: complaint._id });
         return {
           ...complaint,
           comments: commentCount,
+          studentName: complaint.author.name,
+          author: complaint.author._id.toString(), // Add author ID
         };
       })
     );
@@ -167,30 +177,30 @@ router.get('/user', auth, async (req, res) => {
   }
 });
 
-// Get a single complaint by ID
+// Get single complaint
 router.get('/:id', auth, async (req, res) => {
   try {
-    console.log('Fetching complaint with ID:', req.params.id);
-    const complaint = await Complaint.findById(req.params.id).select('-voters');
+    const complaint = await Complaint.findById(req.params.id)
+      .populate('author', 'name') // Populate author name
+      .lean();
     
     if (!complaint) {
-      console.log('Complaint not found with ID:', req.params.id);
-      return res.status(404).json({ message: 'Complaint not found' });
+      return res.status(404).json({ msg: 'Complaint not found' });
     }
     
-    const commentCount = await Comment.countDocuments({ complaint: complaint._id });
+    // Add studentName and author ID to the complaint
+    const complaintWithDetails = {
+      ...complaint,
+      studentName: complaint.author.name,
+      author: complaint.author._id.toString(), // Add author ID
+    };
     
-    res.json({
-      ...complaint.toObject(),
-      comments: commentCount,
-    });
+    res.json(complaintWithDetails);
   } catch (err) {
-    console.error('Error fetching complaint:', err);
-    
+    console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ message: 'Complaint not found' });
+      return res.status(404).json({ msg: 'Complaint not found' });
     }
-    
     res.status(500).send('Server error');
   }
 });
@@ -273,16 +283,36 @@ router.patch('/:id/status', auth, isFaculty, async (req, res) => {
       return res.status(400).json({ message: 'Invalid status value' });
     }
     
-    const complaint = await Complaint.findById(req.params.id);
+    const complaint = await Complaint.findById(req.params.id)
+      .populate('author', 'name'); // Populate author to get student name
     
     if (!complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
     
+    // Store the old status before updating
+    const oldStatus = complaint.status;
+    
+    // Update the status
     complaint.status = status;
     await complaint.save();
     
-    res.json({ status: complaint.status });
+    // Create a notification for the student
+    const notification = {
+      userId: complaint.author._id.toString(),
+      studentName: complaint.author.name,
+      complaintTitle: complaint.title,
+      newStatus: status,
+      timestamp: new Date().toISOString(),
+    };
+    
+    // Store the notification in the database
+    await Notification.create(notification);
+    
+    res.json({ 
+      status: complaint.status,
+      notification // Send the notification back to the client
+    });
   } catch (err) {
     console.error(err.message);
     
