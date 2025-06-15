@@ -1,6 +1,6 @@
 # Campus Voice
 
-Campus Voice is a web-based platform designed to facilitate communication between students and university administration. It enables students to submit suggestions, report issues, and engage in discussions to drive positive changes within the campus environment.
+Campus Voice is a web-based platform designed to facilitate communication between students and university administration anonymously. It enables students to submit suggestions, report issues, and engage in discussions to drive positive changes within the campus environment.
 
 ## 🌟 Features
 
